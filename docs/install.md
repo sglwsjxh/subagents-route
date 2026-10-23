@@ -51,41 +51,38 @@ npm run sync
 
 ## 第三步 接入 commands 与 agents
 
-把 `<插件目录>/.opencode` 下的 `commands` 和 `agents` 挂到全局配置
+把 `<插件目录>/.opencode` 下 `agents` 和 `commands` 的每个 `.md` 文件逐个软链接到全局配置目录，不要整目录挂载。软链接记录的是目标路径，`git pull` 重写文件后链接仍有效；硬链接会在那一刻断成旧副本，所以不用
 
-agents 整个目录用链接。Windows PowerShell：
-
-```powershell
-New-Item -ItemType Junction -Path ~/.config/opencode/agents -Target <插件目录>\.opencode\agents
-```
-
-macOS/Linux：
-
-```bash
-ln -s <插件目录>/.opencode/agents ~/.config/opencode/agents
-```
-
-commands 只挂 `goal.md` 和 `ulw.md` 两个文件。Windows Junction 不支持文件，用硬链接（硬链接不跨盘符，仓库和全局配置必须在同一分区；若 `~/.config/opencode/commands` 目录不存在，先用 `New-Item -ItemType Directory` 创建）：
+Windows 建软链接需要开启系统「开发者模式」，否则用管理员 PowerShell 执行。agents 部分：
 
 ```powershell
-New-Item -ItemType HardLink -Path ~/.config/opencode/commands/goal.md -Target <插件目录>\.opencode\commands\goal.md
-New-Item -ItemType HardLink -Path ~/.config/opencode/commands/ulw.md -Target <插件目录>\.opencode\commands\ulw.md
+$src = "<插件目录>\.opencode\agents"; $dst = "$env:USERPROFILE\.config\opencode\agents"
+New-Item -ItemType Directory -Force -Path $dst | Out-Null
+Get-ChildItem "$src\*.md" | ForEach-Object { New-Item -ItemType SymbolicLink -Path "$dst\$($_.Name)" -Target $_.FullName }
 ```
 
-macOS/Linux：
+commands 只挂 `goal.md` 和 `ulw.md`（目录不存在时先 `New-Item -ItemType Directory` 创建 `~/.config/opencode/commands`）：
+
+```powershell
+foreach ($n in "goal.md","ulw.md") { New-Item -ItemType SymbolicLink -Path "$env:USERPROFILE\.config\opencode\commands\$n" -Target "<插件目录>\.opencode\commands\$n" }
+```
+
+macOS/Linux 的 `ln -s` 本来就是软链接，行为一致：
 
 ```bash
-ln -s <插件目录>/.opencode/commands/goal.md ~/.config/opencode/commands/goal.md
-ln -s <插件目录>/.opencode/commands/ulw.md ~/.config/opencode/commands/ulw.md
+mkdir -p ~/.config/opencode/agents ~/.config/opencode/commands
+ln -s <插件目录>/.opencode/agents/*.md ~/.config/opencode/agents/
+ln -s <插件目录>/.opencode/commands/goal.md <插件目录>/.opencode/commands/ulw.md ~/.config/opencode/commands/
 ```
 
 如果全局已经存在同名文件或目录：先逐字节对比内容与仓库版本一致（`certutil -hashfile` 或 `sha256sum`），一致才删原件建链接；不一致先备份再问维护者
 
-链接方式的好处：以后 `git pull` 更新仓库，全局配置自动跟着变，不用再复制。注意 agents 目录 Junction 永远指向仓库里的目录，天然安全；goal.md 和 ulw.md 是硬链接，`git pull` 重写文件时可能把链接断成旧副本，更新后建议核对一次两个命令文件的内容，不一致就重建链接
+逐文件链接的好处：想停用某个 agent 直接删对应链接即可，不动其他；仓库更新后全局配置自动跟着变。仓库目录整体挪走或改名会让所有链接失效，恢复方式是按本节命令重跑一遍
 
 ## 第四步 验证
 
 - [ ] 让配置生效：`/reload` 强制重载（OpenCode V2 会监听配置文件自动重载，重启兜底也行），输入 `/` 能看到 `goal` 和 `ulw` 两个命令
+- [ ] 逐文件软链接建好：`Get-ChildItem ~/.config/opencode/agents | Select-Object Name,LinkType` 每个文件 LinkType 显示 SymbolicLink
 - [ ] 对话里 `goal_set` / `goal_done` 工具存在，设置目标后空闲会被自动续跑（上限 40 轮，状态存 `~/.config/opencode/goals/<sessionID>.json`）
 - [ ] 随便派一个子代理，如 explore，不报 模型不存在或已停用
 - [ ] TUI 中出现子代理状态板
