@@ -53,7 +53,7 @@ npm run sync
 
 把 `<插件目录>/.opencode` 下 `agents` 和 `commands` 的每个 `.md` 文件逐个软链接到全局配置目录，不要整目录挂载。软链接记录的是目标路径，`git pull` 重写文件后链接仍有效；硬链接会在那一刻断成旧副本，所以不用
 
-Windows 建软链接需要开启系统「开发者模式」，否则用管理员 PowerShell 执行。agents 部分：
+Windows 建软链接需要开启系统「开发者模式」，否则用管理员 PowerShell 执行。注意开发者模式只对开启后新启动的进程生效：刚开完就报 Administrator privilege required 的话，重启终端或 OpenCode 再试即可免提权。agents 部分：
 
 ```powershell
 $src = "<插件目录>\.opencode\agents"; $dst = "$env:USERPROFILE\.config\opencode\agents"
@@ -77,7 +77,7 @@ ln -s <插件目录>/.opencode/commands/goal.md <插件目录>/.opencode/command
 
 如果全局已经存在同名文件或目录：先逐字节对比内容与仓库版本一致（`certutil -hashfile` 或 `sha256sum`），一致才删原件建链接；不一致先备份再问维护者
 
-逐文件链接的好处：想停用某个 agent 直接删对应链接即可，不动其他；仓库更新后全局配置自动跟着变。仓库目录整体挪走或改名会让所有链接失效，恢复方式是按本节命令重跑一遍
+语义等同 Windows 快捷方式：真实文件全在插件目录里，全局配置目录只是指针，删了原文所有链接一起失效。逐文件链接的好处：想停用某个 agent 直接删对应链接即可，不动其他；仓库更新后全局配置自动跟着变。仓库目录整体挪走或改名会让所有链接失效，恢复方式是按本节命令重跑一遍
 
 ## 第四步 验证
 
