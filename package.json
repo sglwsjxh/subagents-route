@@ -1,6 +1,6 @@
 {
   "name": "@sglwsjxh/subagents-route",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "子代理状态板、goal 工具与自动续跑",
   "type": "module",
   "license": "MIT",
