@@ -1,0 +1,103 @@
+name: Publish
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "要发布的版本号，例如 0.1.0"
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: 校验与打包
+    runs-on: ubuntu-latest
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v7
+
+      - name: 准备 Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: "24"
+          package-manager-cache: false
+
+      - name: 校验 tag 版本与包清单一致
+        shell: bash
+        env:
+          TAG_INPUT: ${{ inputs.tag }}
+        run: |
+          tag_version="$TAG_INPUT"
+          if [ -z "$tag_version" ]; then
+            tag_version="${GITHUB_REF_NAME#v}"
+          else
+            tag_version="${tag_version#v}"
+          fi
+          pkg_version="$(node -p "require('./package.json').version")"
+          if [ "$tag_version" != "$pkg_version" ]; then
+            echo "版本不一致：tag 为 $tag_version，package.json 为 $pkg_version"
+            exit 1
+          fi
+          echo "版本一致：$pkg_version"
+
+      - name: 语法检查
+        run: node --check sync-routes.mjs
+
+      - name: 校验打包内容
+        run: npm pack --dry-run
+
+  publish-npmjs:
+    name: 发布到 npmjs.org
+    needs: validate
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      # trusted publishing 必需，npm CLI 检测到 OIDC 环境会自动优先使用
+      id-token: write
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v7
+
+      - name: 准备 Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: "24"
+          registry-url: "https://registry.npmjs.org/"
+          package-manager-cache: false
+
+      - name: 发布到 npmjs.org
+        run: npm publish --access public --registry=https://registry.npmjs.org/
+        env:
+          # 在 npm 网站配好 trusted publisher 后可不建此 secret，OIDC 优先
+          # scoped 包默认 private，发布公开包必须 --access public
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+  publish-github-packages:
+    name: 发布到 GitHub Packages
+    needs: publish-npmjs
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v7
+
+      - name: 准备 Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: "24"
+          registry-url: "https://npm.pkg.github.com"
+          package-manager-cache: false
+
+      - name: 发布到 GitHub Packages
+        # GHPR 只认 token，scope 必须与仓库 owner 一致，首次发布默认 private
+        # 需要匿名拉取的话去 package settings 把可见性改成 public
+        run: npm publish --registry=https://npm.pkg.github.com
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
