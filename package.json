@@ -1,0 +1,30 @@
+{
+  "name": "@sglwsjxh/subagents-route",
+  "version": "0.1.0",
+  "description": "子代理状态板、goal 工具与自动续跑",
+  "type": "module",
+  "license": "MIT",
+  "main": "./index.ts",
+  "exports": {
+    ".": "./index.ts",
+    "./tui": "./tui.tsx"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sglwsjxh/subagents-route.git"
+  },
+  "files": [
+    "index.ts",
+    "goal.ts",
+    "tui.tsx",
+    "sync-routes.mjs",
+    "subagents.json.example",
+    ".opencode",
+    "docs",
+    "README-en.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "sync": "node ./sync-routes.mjs"
+  }
+}
