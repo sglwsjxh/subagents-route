@@ -1,0 +1,46 @@
+{
+    "subagents": [
+        {
+            "name": "plan",
+            "model": "modelscope/ZhipuAI/GLM-5.3-Flash",
+            "effort": "max",
+            "description": "规划专员。改动跨多个文件、有先后依赖、需要先想清楚再动手时派它，或者切到它做主规划。产出带依赖顺序、并行分组、验证方式的可执行计划"
+        },
+        {
+            "name": "explore",
+            "model": "opencode/deepseek-v4.1-flash-free",
+            "description": "本地代码检索专员。问 X 在哪实现、哪个文件有 Y、谁调用了 Z、这个模式项目里怎么写的 时派它。可并行多开，thoroughness 分 quick / medium / very thorough。只读，不改文件"
+        },
+        {
+            "name": "librarian",
+            "model": "opencode/deepseek-v4.1-flash-free",
+            "description": "外部资料研究员。涉及第三方库和框架的 API 用法、官方文档、版本迁移、陌生报错、开源实现参考时派它。结论必须带可验证链接和版本号。只读"
+        },
+        {
+            "name": "oracle",
+            "model": "modelscope/Qwen/Qwen3.8-Flash-Next",
+            "effort": "max",
+            "description": "深度技术顾问。架构取舍、跨系统权衡、连续两次修复失败、不熟悉的代码模式、安全或性能隐患时派它。只给判断和取舍，不堆代码。可并行开多个独立咨询"
+        },
+        {
+            "name": "writer",
+            "model": "opencode/deepseek-v4.1-flash-free",
+            "description": "执行型子代理。目标明确、要落地改代码、写文件、跑测试、产出长文档或报告时派它。一次做完不停在半路，交付带验证证据。独立单元可并行多个"
+        },
+        {
+            "name": "critic",
+            "model": "modelscope/ZhipuAI/GLM-5.3-Flash",
+            "effort": "high",
+            "description": "审查型子代理。计划、改动、PR、交付文档在收尾前派它挑刺。只报会让人卡住的阻断问题，带文件行号证据，不评论风格偏好。只读"
+        },
+        {
+            "name": "looker",
+            "model": "nvidia/nvidia/nemotron-3-nano-omni-30b-a3b-reasoning",
+            "description": "看图专员。理解截图、设计稿、UI 对比图、图表、扫描件、报错截图这类视觉内容时派它。OpenCode 只有图片能进模型，音视频和文档要先转图。可同时开多个"
+        }
+    ],
+    "concurrency": {
+        "total": 24,
+        "perAgent": 4
+    }
+}
