@@ -175,16 +175,18 @@ let rosterCache: { mtime: number; items: Model[] } | null = null
 function readRoster(colorOf: (name: string) => string): Model[] {
   const file = rosterFile()
   const mtime = statSync(file).mtimeMs
-  if (rosterCache && rosterCache.mtime === mtime) return rosterCache.items
-
-  const parsed = JSON.parse(readFileSync(file, "utf8"))
-  const list: any[] = parsed.subagents
-  const items = list
-    .filter((item) => item?.name && item?.model)
-    .map((item) => ({ name: String(item.name), model: tail(String(item.model)), color: colorOf(String(item.name)) }))
-
-  rosterCache = { mtime, items }
-  return rosterCache.items
+  if (!rosterCache || rosterCache.mtime !== mtime) {
+    const parsed = JSON.parse(readFileSync(file, "utf8"))
+    const list: any[] = parsed.subagents
+    rosterCache = {
+      mtime,
+      items: list
+        .filter((item) => item?.name && item?.model)
+        .map((item) => ({ name: String(item.name), model: tail(String(item.model)), color: "" })),
+    }
+  }
+  // 颜色不进缓存：agent color 可能晚于首次渲染才到位，缓存命中也要重算
+  return rosterCache.items.map((item) => ({ ...item, color: colorOf(item.name) }))
 }
 
 export default Plugin.define({
