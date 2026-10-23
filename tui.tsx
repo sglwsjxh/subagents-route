@@ -289,7 +289,8 @@ export default Plugin.define({
         }
         if (session && session.id !== root) sessions.push(session)
       }
-      sessions.sort((a, b) => (a.time?.created ?? 0) - (b.time?.created ?? 0))
+      // 从新到旧，新派生的子代理排在面板顶部
+      sessions.sort((a, b) => (b.time?.created ?? 0) - (a.time?.created ?? 0))
 
       const location = context.location ?? context.data.location.default()
       // TUI 客户端缓存里的 agent 列表可能还没有 color，直接问服务端要
