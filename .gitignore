@@ -1,2 +1,22 @@
+# ide
+.vscode/
+
+# npm
 node_modules/
-*.tgz
+dist/
+build/
+
+# temp
+tmp/
+temp/
+*.tmp
+*.bak
+
+# config
+config.json
+subagents.json
+!subagents.example.json
+
+# log 
+logs/
+*.log
