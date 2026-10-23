@@ -1,6 +1,6 @@
 ---
 description: "执行型子代理。目标明确、要落地改代码、写文件、跑测试、产出长文档或报告时派它。一次做完不停在半路，交付带验证证据。独立单元可并行多个"
-mode: all
+mode: subagent
 steps: 40
 color: "#86EFAC"
 ---

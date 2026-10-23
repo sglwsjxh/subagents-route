@@ -1,6 +1,6 @@
 ---
 description: "外部资料研究员。涉及第三方库和框架的 API 用法、官方文档、版本迁移、陌生报错、开源实现参考时派它。结论必须带可验证链接和版本号。只读"
-mode: all
+mode: subagent
 steps: 18
 color: "#8B5CF6"
 permissions:

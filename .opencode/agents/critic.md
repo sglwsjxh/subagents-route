@@ -1,6 +1,6 @@
 ---
 description: "审查型子代理。计划、改动、PR、交付文档在收尾前派它挑刺。只报会让人卡住的阻断问题，带文件行号证据，不评论风格偏好。只读"
-mode: all
+mode: subagent
 steps: 10
 color: "#EC4899"
 permissions:

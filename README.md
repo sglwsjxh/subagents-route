@@ -10,6 +10,7 @@
 
 - 子代理模型路由：`~/.config/opencode/subagents.json` 是唯一真相源，定义每个子代理的 name、model、description，外加整体并发上限，跑 `node sync-routes.mjs` 把路由幂等写进 opencode.json 的 agents 段
 - goal 续跑：`goal_set` 把目标固定到会话，主会话与全部子代理都空闲且目标未完成时注入隐形提示续跑，`goal_done` 结束，上限 40 轮
+- plan 转 build：计划落盘后 `plan_build` 把会话切到 build agent 并注入按计划执行的指令，用户选「切到 build」即自动交接
 - TUI 状态板：实时显示每个子代理的模型、状态、token 用量和当前 goal
 - 自带 7 个子代理定义和 2 个命令：plan、explore、librarian、oracle、writer、critic、looker，加上 goal 和 ulw
 

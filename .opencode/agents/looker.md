@@ -1,6 +1,6 @@
 ---
 description: "看图专员。理解截图、设计稿、UI 对比图、图表、扫描件、报错截图这类视觉内容时派它。OpenCode 只有图片能进模型，音视频和文档要先转图。可同时开多个"
-mode: all
+mode: subagent
 steps: 8
 color: "#F9A8D4"
 permissions:

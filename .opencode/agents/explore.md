@@ -1,6 +1,6 @@
 ---
 description: "本地代码检索专员。问 X 在哪实现、哪个文件有 Y、谁调用了 Z、这个模式项目里怎么写的 时派它。可并行多开，thoroughness 分 quick / medium / very thorough。只读，不改文件"
-mode: all
+mode: subagent
 steps: 14
 color: "#3B82F6"
 permissions:

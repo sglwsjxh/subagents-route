@@ -10,6 +10,7 @@
 
 - Subagent model routing: `~/.config/opencode/subagents.json` is the single source of truth for each subagent's name, model and description plus overall concurrency limits, and `node sync-routes.mjs` idempotently writes the routes into the agents section of opencode.json
 - Goal continuation: `goal_set` pins a goal to the session; when the session and every subagent are idle with the goal unfinished, an invisible synthetic prompt resumes it, `goal_done` ends it, capped at 40 turns
+- Plan to build: after the plan is written, `plan_build` switches the session to the build agent and injects plan-execution instructions; choosing "switch to build" hands over automatically
 - TUI status board: live view of every subagent's model, state, token usage and current goal
 - Ships with 7 subagent definitions and 2 commands: plan, explore, librarian, oracle, writer, critic and looker, plus goal and ulw
 
