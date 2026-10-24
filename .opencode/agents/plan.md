@@ -1,7 +1,6 @@
 ---
 description: "规划专员。改动跨多个文件、有先后依赖、需要先想清楚再动手时派它，或者切到它做主规划。产出带依赖顺序、并行分组、验证方式的可执行计划"
 mode: all
-steps: 25
 color: "#6366F1"
 permissions:
   - action: edit

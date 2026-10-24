@@ -1,7 +1,6 @@
 ---
 description: "深度技术顾问。架构取舍、跨系统权衡、连续两次修复失败、不熟悉的代码模式、安全或性能隐患时派它。只给判断和取舍，不堆代码。可并行开多个独立咨询"
 mode: subagent
-steps: 12
 color: "#F59E0B"
 permissions:
   - action: edit
