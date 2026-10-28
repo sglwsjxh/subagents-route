@@ -1,5 +1,6 @@
 import { Plugin } from "@opencode/plugin"
 import { isBusy, listGoals, readGoal, removeGoal, writeGoal } from "./goal.ts"
+import { syncRoutes } from "./routes.ts"
 
 // 续跑上限：防止目标判断写错时无限烧配额
 const MAX_TURNS = 40
@@ -29,6 +30,14 @@ export default Plugin.define({
   async setup(ctx) {
     // 每个会话一条续跑链
     const loops = new Set<string>()
+
+    // 仅在启动与 /reload（插件 setup 重跑）时对账 opencode.json 生成段；编辑 subagents.json 不落盘，避免每次保存引发配置级联重载。
+    // 有差异才写盘，写盘触发的再次对账比对相等即停，无循环
+    try {
+      if (syncRoutes()) console.log("[subagents-route] 路由对账：生成段已更新")
+    } catch (error) {
+      console.error("[subagents-route] 路由对账失败:", error)
+    }
 
     // 主会话与全部子会话都空闲才续跑，子代理还在跑时不插话；wait 对空闲会话立即返回（实测语义）
     const waitForChildren = async (sessionID: string) => {
