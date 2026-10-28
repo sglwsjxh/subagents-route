@@ -8,7 +8,7 @@
 
 ## Features
 
-- Subagent model routing: `~/.config/opencode/subagents.json` is the single source of truth for each subagent's name, model and description plus overall concurrency limits, and `node sync-routes.mjs` idempotently writes the routes into the agents section of opencode.json
+- Subagent model routing: `~/.config/opencode/subagents.json` is the single source of truth for each subagent's name, model and description plus overall concurrency limits; the plugin reconciles the routes into the agents section of opencode.json at startup and on `/reload`, never writing while files are being edited, with `npm run sync` for a manual force and `npm run clean` to remove the generated block
 - Goal continuation: `goal_set` pins a goal to the session; when the session and every subagent are idle with the goal unfinished, an invisible synthetic prompt resumes it, `goal_done` ends it, capped at 40 turns
 - Plan to build: after the plan is written, `plan_build` switches the session to the build agent and injects plan-execution instructions; choosing "switch to build" hands over automatically
 - TUI status board: live view of every subagent's model, state, token usage and current goal
@@ -28,7 +28,7 @@ The Chinese deploy line reads 根据 docs/install.md 的内容帮我部署这个
 
 Goals: run `/goal` followed by the goal text; once the session and all its subagents are idle with the goal unfinished, an invisible synthetic prompt resumes the work until `goal_done`, with a 40-turn cap
 
-Routing: edit `~/.config/opencode/subagents.json`, then run `npm run sync` to update the agents section of opencode.json
+Routing: edit `~/.config/opencode/subagents.json`, save, then run `/reload`; the plugin reconciles the routes into the agents section of opencode.json, and startup reconciles as well. `npm run sync` forces a manual reconcile, `npm run clean` removes the generated block (the next `/reload` or startup writes it back, so remove the plugin entry first for a permanent cleanup)
 
 ### Configuration
 

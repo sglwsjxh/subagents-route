@@ -4,7 +4,7 @@
 
 ## 前置要求
 
-- Node.js 22+，已安装 OpenCode
+- Node.js 23.6+（CLI 直接加载 TS 模块），已安装 OpenCode
 - 全局配置目录 `~/.config/opencode`（Windows 即 `C:\Users\<你>\.config\opencode`，遵循 `XDG_CONFIG_HOME`）
 - 你的 `opencode.json` 顶层必须有一条 `"model": "..."` 配置行（4 空格缩进、行尾带逗号，`sync-routes.mjs` 按此匹配插入锚点），没有会直接报错
 
@@ -33,21 +33,17 @@ git clone https://github.com/sglwsjxh/subagents-route.git
 1. 复制 `<插件目录>/subagents.json.example` 为 `~/.config/opencode/subagents.json`
 2. 逐项修改 `model`：只写基础名，从 `opencode models` 的输出里逐字选择，一行一个 `provider/model`，不能带 `#` 后缀。思考强度用单独的可选字段 `effort`，取 `low` / `medium` / `high` / `max` 之一，值必须在该模型目录元数据或 provider 配置声明的 reasoning effort 档位里；模型不支持推理强度就不写 `effort`，用默认强度
 3. `concurrency.total` 是同时运行的子代理总数上限，`perAgent` 是单种 agent 同时上限
-4. 运行
+4. 路由对账时机：插件在 OpenCode 启动与执行 `/reload` 时把 `subagents.json` 的路由对账写进 `opencode.json`。编辑 `subagents.json` 期间不落盘，避免保存动作引发配置级联重载；改完在 TUI 执行 `/reload`（或重启）生效。需要手动强制对账时运行
 
 ```bash
 node <插件目录>/sync-routes.mjs
 ```
 
-或在插件目录下
+或在插件目录下 `npm run sync`。对账只在内容有差异时落盘，重复运行安全
 
-```bash
-npm run sync
-```
+想移除生成段用 `npm run clean`（等同 `node sync-routes.mjs --clean`）。删后下次 `/reload` 或启动会对账写回；彻底移除需先从 `plugins` 数组删掉插件条目再执行 clean
 
-把路由段写进 `opencode.json`
-
-注意 `sync-routes.mjs` 只更新 `opencode.json` 的 `agents` 段，生成内容夹在 `BEGIN subagents-route` 和 `END subagents-route` 注释标记之间，不动其他内容，重复运行安全。带 `effort` 的条目会展开成 OpenCode 官方的 `providerID` + `model` + `variant` 形态，不带的保持 `provider/model` 字符串原样
+注意生成内容夹在 `BEGIN subagents-route` 和 `END subagents-route` 注释标记之间，不动其他内容，行尾跟随目标文件。带 `effort` 的条目会展开成 OpenCode 官方的 `providerID` + `model` + `variant` 形态，不带的保持 `provider/model` 字符串原样
 
 ## 第三步 接入 commands 与 agents
 
@@ -85,11 +81,13 @@ ln -s <插件目录>/.opencode/commands/goal.md <插件目录>/.opencode/command
 - [ ] 逐文件软链接建好：`Get-ChildItem ~/.config/opencode/agents | Select-Object Name,LinkType` 每个文件 LinkType 显示 SymbolicLink
 - [ ] 对话里 `goal_set` / `goal_done` 工具存在，设置目标后空闲会被自动续跑（上限 40 轮，状态存 `~/.config/opencode/goals/<sessionID>.json`）
 - [ ] 随便派一个子代理，如 explore，不报 模型不存在或已停用
+- [ ] 改 `subagents.json` 任一 model 保存后执行 `/reload`，生成段与状态板花名册更新为新路由
 - [ ] TUI 中出现子代理状态板
 
 ## 常见故障
 
-- 派子代理报 模型不存在或已停用：`subagents.json` 里 `model` 的基础名不在 `opencode models` 列表里，或 `effort` 值不在该模型声明的 reasoning effort 档位里，按第二步规则改正后重新运行 sync-routes
+- 派子代理报 模型不存在或已停用：`subagents.json` 里 `model` 的基础名不在 `opencode models` 列表里，或 `effort` 值不在该模型声明的 reasoning effort 档位里，按第二步规则改正后保存即自动生效（或手动 `npm run sync`）
 - `sync-routes.mjs` 报 找不到 `"model"` 行：`opencode.json` 缺顶层 `model` 配置
+- 删了生成段又在 /reload 后回来：插件对账的预期行为；要彻底移除按第二步说明，先删 `plugins` 条目再 `npm run clean`
 - `/goal` 不出现：全局 `commands/goal.md` 链接没建好或目标路径失效
-- 卸载：删 `plugins` 数组里的条目、删 `subagents.json`、断开链接，`goals` 目录可选清
+- 卸载：删 `plugins` 数组里的条目，跑 `npm run clean` 移除生成段，删 `subagents.json`，断开链接，`goals` 目录可选清
