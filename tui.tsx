@@ -4,20 +4,6 @@ import { existsSync, readFileSync, statSync } from "node:fs"
 import { homedir } from "node:os"
 import { join } from "node:path"
 
-type GoalFile = {
-  text: string
-  started: number
-  done: boolean
-}
-
-// 与 server 侧共用同一份 goal 文件，这里只读
-function readGoal(sessionID: string): GoalFile | undefined {
-  const base = process.env.XDG_CONFIG_HOME || join(homedir(), ".config")
-  const file = join(base, "opencode", "goals", `${sessionID}.json`)
-  if (!existsSync(file)) return undefined
-  return JSON.parse(readFileSync(file, "utf8")) as GoalFile
-}
-
 type StateName = "running" | "retry" | "idle" | "done" | "failed" | "interrupted"
 
 type Live = {
@@ -53,8 +39,6 @@ type Board = {
   now: number
   entries: Entry[]
   models: Model[]
-  goalText: string
-  goalStarted: number
 }
 
 const NAME = 11
@@ -119,25 +103,6 @@ function fit(value: string, limit: number) {
   return `${out}…`
 }
 
-// 按终端列数折行，goal 这类长文本要完整显示
-function wrap(value: string, limit: number) {
-  const lines: string[] = []
-  let line = ""
-  let used = 0
-  for (const char of value) {
-    const width = isWide(char) ? 2 : 1
-    if (used + width > limit) {
-      lines.push(line)
-      line = ""
-      used = 0
-    }
-    line += char
-    used += width
-  }
-  if (line) lines.push(line)
-  return lines
-}
-
 function pad(value: string, width: number) {
   const gap = width - cells(value)
   return gap > 0 ? value + " ".repeat(gap) : value
@@ -194,7 +159,7 @@ export default Plugin.define({
   setup(context) {
     const theme = context.theme
     const [board, update] = context.storage.memory<Board>("agent-board", {
-      initial: { tick: 0, now: Date.now(), entries: [], models: [], goalText: "", goalStarted: 0 },
+      initial: { tick: 0, now: Date.now(), entries: [], models: [] },
     })
 
     // 事件累加的实时数据放普通 Map：渲染读 store，刷新逻辑读这里，避免 Solid 追踪自激
@@ -354,16 +319,12 @@ export default Plugin.define({
         })
       }
 
-      const goal = readGoal(root)
-
       update((draft) => {
         draft.entries = entries
         draft.models = readRoster((name) => known.get(name)?.color ?? theme.text.muted).map((item) => ({
           ...item,
           model: fit(item.model, MAXW - 2),
         }))
-        draft.goalText = goal && !goal.done ? goal.text : ""
-        draft.goalStarted = goal?.started ?? 0
       })
     }
 
@@ -403,13 +364,6 @@ export default Plugin.define({
 
       return (
         <box>
-          <Show when={board.goalText}>
-            <text fg={theme.text.base}>{`Goal (${span(board.now - board.goalStarted)})`}</text>
-            <For each={wrap(board.goalText, MAXW)}>
-              {(line) => <text fg={theme.text.muted}>{line}</text>}
-            </For>
-            <text>{" "}</text>
-          </Show>
           <text fg={theme.text.base}>{"SubAgents"}</text>
           <Show when={board.entries.length > 0}>
             <text fg={theme.text.muted}>{RULE}</text>

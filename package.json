@@ -1,7 +1,7 @@
 {
   "name": "@sglwsjxh/subagents-route",
-  "version": "0.2.0",
-  "description": "子代理状态板、goal 工具与自动续跑",
+  "version": "0.3.0",
+  "description": "子代理状态板与 plan_build 计划移交",
   "type": "module",
   "license": "MIT",
   "main": "./index.ts",
@@ -15,7 +15,6 @@
   },
   "files": [
     "index.ts",
-    "goal.ts",
     "routes.ts",
     "tui.tsx",
     "sync-routes.mjs",
