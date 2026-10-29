@@ -29,7 +29,7 @@ description: 深挖式完成任务。先并行捞上下文，再定方案，再�
 
 如果这一步产出了计划文件（`plans/*.md`），用 question 问一句：要不要把这个计划设为持续 goal，由你一直跑到完成。
 
-- 选要：调用 `goal_set`，goal 取计划里的目标概括并带上完成标准，source 填计划路径，然后继续阶段三
+- 选要：提示用户在输入框敲官方 `/goal 按 <计划路径> 执行到完成`（OpenCode v2.2.1+ 内置，带 pause/resume/clear 与 reviewer 确认），然后继续阶段三
 - 选不要：当普通任务做，做完就停
 
 方案定下来后，用 todowrite 把任务列表落下来：每个任务一条 todo，content 写清要改什么、不许碰什么、完成的判定标准，status 初始 pending，priority 按依赖关键程度排。

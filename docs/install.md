@@ -1,6 +1,6 @@
 # 安装 Subagents Route
 
-这份文档给人和 agent 都能照做，目标读者是把项目部署到 OpenCode 全局配置里。装完得到三大功能：子代理模型路由、goal 持续目标与自动续跑、TUI 子代理状态板
+这份文档给人和 agent 都能照做，目标读者是把项目部署到 OpenCode 全局配置里。装完得到三大功能：子代理模型路由、plan 转 build 移交、TUI 子代理状态板
 
 ## 前置要求
 
@@ -57,10 +57,10 @@ New-Item -ItemType Directory -Force -Path $dst | Out-Null
 Get-ChildItem "$src\*.md" | ForEach-Object { New-Item -ItemType SymbolicLink -Path "$dst\$($_.Name)" -Target $_.FullName }
 ```
 
-commands 只挂 `goal.md` 和 `ulw.md`（目录不存在时先 `New-Item -ItemType Directory` 创建 `~/.config/opencode/commands`）：
+commands 只挂 `ulw.md`（目录不存在时先 `New-Item -ItemType Directory` 创建 `~/.config/opencode/commands`）：
 
 ```powershell
-foreach ($n in "goal.md","ulw.md") { New-Item -ItemType SymbolicLink -Path "$env:USERPROFILE\.config\opencode\commands\$n" -Target "<插件目录>\.opencode\commands\$n" }
+New-Item -ItemType SymbolicLink -Path "$env:USERPROFILE\.config\opencode\commands\ulw.md" -Target "<插件目录>\.opencode\commands\ulw.md"
 ```
 
 macOS/Linux 的 `ln -s` 本来就是软链接，行为一致：
@@ -68,7 +68,7 @@ macOS/Linux 的 `ln -s` 本来就是软链接，行为一致：
 ```bash
 mkdir -p ~/.config/opencode/agents ~/.config/opencode/commands
 ln -s <插件目录>/.opencode/agents/*.md ~/.config/opencode/agents/
-ln -s <插件目录>/.opencode/commands/goal.md <插件目录>/.opencode/commands/ulw.md ~/.config/opencode/commands/
+ln -s <插件目录>/.opencode/commands/ulw.md ~/.config/opencode/commands/
 ```
 
 如果全局已经存在同名文件或目录：先逐字节对比内容与仓库版本一致（`certutil -hashfile` 或 `sha256sum`），一致才删原件建链接；不一致先备份再问维护者
@@ -77,9 +77,9 @@ ln -s <插件目录>/.opencode/commands/goal.md <插件目录>/.opencode/command
 
 ## 第四步 验证
 
-- [ ] 让配置生效：`/reload` 强制重载（OpenCode V2 会监听配置文件自动重载，重启兜底也行），输入 `/` 能看到 `goal` 和 `ulw` 两个命令
+- [ ] 让配置生效：`/reload` 强制重载（OpenCode V2 会监听配置文件自动重载，重启兜底也行），输入 `/` 能看到 `ulw` 命令；持续目标用官方 `/goal`（OpenCode v2.2.1+ 内置）
 - [ ] 逐文件软链接建好：`Get-ChildItem ~/.config/opencode/agents | Select-Object Name,LinkType` 每个文件 LinkType 显示 SymbolicLink
-- [ ] 对话里 `goal_set` / `goal_done` 工具存在，设置目标后空闲会被自动续跑（上限 40 轮，状态存 `~/.config/opencode/goals/<sessionID>.json`）
+- [ ] 对话里 `plan_build` 工具存在，给出计划文件路径后能把会话切到 build agent
 - [ ] 随便派一个子代理，如 explore，不报 模型不存在或已停用
 - [ ] 改 `subagents.json` 任一 model 保存后执行 `/reload`，生成段与状态板花名册更新为新路由
 - [ ] TUI 中出现子代理状态板
@@ -89,5 +89,5 @@ ln -s <插件目录>/.opencode/commands/goal.md <插件目录>/.opencode/command
 - 派子代理报 模型不存在或已停用：`subagents.json` 里 `model` 的基础名不在 `opencode models` 列表里，或 `effort` 值不在该模型声明的 reasoning effort 档位里，按第二步规则改正后保存即自动生效（或手动 `npm run sync`）
 - `sync-routes.mjs` 报 找不到 `"model"` 行：`opencode.json` 缺顶层 `model` 配置
 - 删了生成段又在 /reload 后回来：插件对账的预期行为；要彻底移除按第二步说明，先删 `plugins` 条目再 `npm run clean`
-- `/goal` 不出现：全局 `commands/goal.md` 链接没建好或目标路径失效
-- 卸载：删 `plugins` 数组里的条目，跑 `npm run clean` 移除生成段，删 `subagents.json`，断开链接，`goals` 目录可选清
+- `/goal` 行为异常：官方命令与插件无关，检查 OpenCode 版本是否 v2.2.1+，或全局 `commands/` 下是否残留同名自制 goal.md 遮蔽了内置命令
+- 卸载：删 `plugins` 数组里的条目，跑 `npm run clean` 移除生成段，删 `subagents.json`，断开链接；旧的 `goals` 目录可选清

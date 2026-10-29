@@ -1,4 +1,4 @@
-<h1 align="center">Subagents Route · OpenCode 子代理路由、goal 续跑与状态板</h1>
+<h1 align="center">Subagents Route · OpenCode 子代理路由与状态板</h1>
 
 <p align="center">
   <a href="README.md">简体中文</a>
@@ -9,10 +9,9 @@
 ## 功能
 
 - 子代理模型路由：`~/.config/opencode/subagents.json` 是唯一真相源，定义每个子代理的 name、model、description，外加整体并发上限，插件在启动与 `/reload` 时机把路由对账写进 opencode.json 的 agents 段，编辑文件期间不落盘，也可 `npm run sync` 手动强制对账、`npm run clean` 移除生成段
-- goal 续跑：`goal_set` 把目标固定到会话，主会话与全部子代理都空闲且目标未完成时注入隐形提示续跑，`goal_done` 结束，上限 40 轮
 - plan 转 build：计划落盘后 `plan_build` 把会话切到 build agent 并注入按计划执行的指令，用户选「切到 build」即自动交接
-- TUI 状态板：实时显示每个子代理的模型、状态、token 用量和当前 goal
-- 自带 7 个子代理定义和 2 个命令：plan、explore、librarian、oracle、writer、critic、looker，加上 goal 和 ulw
+- TUI 状态板：实时显示每个子代理的模型、状态、token 用量
+- 自带 7 个子代理定义和 1 个命令：plan、explore、librarian、oracle、writer、critic、looker，加上 ulw
 
 ## 安装
 
@@ -26,7 +25,7 @@
 
 ## 使用
 
-goal：`/goal` 后面接目标，主会话和所有子代理都空闲且目标未完成时注入隐形提示续跑，目标全部达成就 `goal_done` 收口，自动续跑最多 40 轮
+持续目标：直接用 OpenCode 官方内置的 `/goal`（v2.2.1+），支持 pause / resume / clear 与 reviewer 确认，本插件不再提供 goal 命令与续跑机制
 
 子代理路由：改完 `~/.config/opencode/subagents.json` 保存后执行 `/reload`，路由对账进 opencode.json 的 agents 段，启动时也会自动对账；`npm run sync` 手动强制对账，`npm run clean` 移除生成段（下次 `/reload` 或启动会写回，彻底移除需先删插件条目）
 
