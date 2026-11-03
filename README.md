@@ -8,7 +8,7 @@
 
 ## 功能
 
-- 子代理模型路由：`~/.config/opencode/subagents.json` 是唯一真相源，定义每个子代理的 name、model、description，外加整体并发上限，插件在启动与 `/reload` 时机把路由对账写进 opencode.json 的 agents 段，编辑文件期间不落盘，也可 `npm run sync` 手动强制对账、`npm run clean` 移除生成段
+- 子代理模型路由：`~/.config/opencode/subagents.json` 是唯一真相源，定义每个子代理的 name、model、description，外加整体并发上限（仅提示词约定，见下文配置说明），插件在启动与 `/reload` 时机把路由对账写进 opencode.json 的 agents 段，编辑文件期间不落盘，也可 `npm run sync` 手动强制对账、`npm run clean` 移除生成段
 - plan 转 build：计划落盘后 `plan_build` 把会话切到 build agent 并注入按计划执行的指令，用户选「切到 build」即自动交接
 - TUI 状态板：实时显示每个子代理的模型、状态、token 用量
 - 自带 7 个子代理定义和 1 个命令：plan、explore、librarian、oracle、writer、critic、looker，加上 ulw
@@ -61,8 +61,8 @@ subagents.json 最小示例：
 | model | 子代理使用的模型，只写 `provider/model` 基础名，不带 # 后缀 |
 | effort | 可选，思考强度，`low` / `medium` / `high` / `max`，只能填该模型声明支持的档位 |
 | description | 子代理角色说明，实际生效来源是 `.opencode/agents/<name>.md` 的同名字段，这里保留作参照 |
-| concurrency.total | 同一时刻在跑的子代理总数上限 |
-| concurrency.perAgent | 同一种子代理的并发上限 |
+| concurrency.total | 仅提示词约定，插件不强制。ulw 工作流按这里的数字自行排队 |
+| concurrency.perAgent | 同上，ulw 按这里的数字分批派出 |
 
 > ⚠️ model 只能逐字选 `opencode models` 列出的基础名；基础名不存在或 effort 值不在模型支持的档位里，子代理启动会报 模型不存在或已停用
 
