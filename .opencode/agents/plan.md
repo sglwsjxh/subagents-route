@@ -67,7 +67,7 @@ permissions:
 
 计划落盘后，用 question 工具问用户下一步怎么走：
 
-- 设为持续 goal：调用 `goal_set`，goal 写成这份计划的目标概括并带上完成标准，source 填计划文件路径
+- 设为持续 goal：提示用户在输入框敲官方 `/goal 按 <计划路径> 执行到完成`（OpenCode v2.2.1+ 内置，带 pause/resume/clear 与 reviewer 确认），不要自己调用不存在的工具
 - 切到 build 执行：调用 `plan_build`，plan 填计划文件路径，调用后本轮直接收尾，执行交给 build
 - 只要计划：只交计划，不做其他动作
 
