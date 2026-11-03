@@ -137,18 +137,61 @@ function rosterFile() {
 
 let rosterCache: { mtime: number; items: Model[] } | null = null
 
+// 从 opencode.json 的 provider models 里查模型的显示名，查不到退回 tail()
+let modelNameCache: { mtime: number; map: Map<string, string> } | null = null
+
+function modelNames(): Map<string, string> {
+  const base = process.env.XDG_CONFIG_HOME || join(homedir(), ".config")
+  const file = join(base, "opencode", "opencode.json")
+  try {
+    const mtime = statSync(file).mtimeMs
+    if (!modelNameCache || modelNameCache.mtime !== mtime) {
+      const map = new Map<string, string>()
+      try {
+        // opencode.json 是 JSONC（sync-routes 会写入 // marker 注释），只剥行首注释再解析
+        const text = readFileSync(file, "utf8")
+          .split(/\r?\n/)
+          .filter((line) => !/^\s*\/\//.test(line))
+          .join("\n")
+        const parsed = JSON.parse(text)
+        const providers = parsed?.provider ?? parsed?.providers ?? {}
+        for (const provider of Object.values<any>(providers)) {
+          for (const [key, model] of Object.entries<any>(provider?.models ?? {})) {
+            const label = model?.name
+            if (typeof label === "string" && label) map.set(tail(key), label)
+          }
+        }
+      } catch {}
+      modelNameCache = { mtime, map }
+    }
+  } catch {
+    // opencode.json 读取失败：退回 tail() 原名，状态板不中断
+  }
+  return modelNameCache?.map ?? new Map()
+}
+
+function pretty(raw: string) {
+  const t = tail(raw)
+  return modelNames().get(t) ?? t
+}
+
 function readRoster(colorOf: (name: string) => string): Model[] {
   const file = rosterFile()
-  const mtime = statSync(file).mtimeMs
-  if (!rosterCache || rosterCache.mtime !== mtime) {
-    const parsed = JSON.parse(readFileSync(file, "utf8"))
-    const list: any[] = parsed.subagents
-    rosterCache = {
-      mtime,
-      items: list
-        .filter((item) => item?.name && item?.model)
-        .map((item) => ({ name: String(item.name), model: tail(String(item.model)), color: "" })),
+  try {
+    const mtime = statSync(file).mtimeMs
+    if (!rosterCache || rosterCache.mtime !== mtime) {
+      const parsed = JSON.parse(readFileSync(file, "utf8"))
+      const list: any[] = parsed.subagents
+      rosterCache = {
+        mtime,
+        items: list
+          .filter((item) => item?.name && item?.model)
+          .map((item) => ({ name: String(item.name), model: pretty(String(item.model)), color: "" })),
+      }
     }
+  } catch {
+    // subagents.json 缺失或损坏：花名册降级为空，不拖垮整个 refresh
+    rosterCache = { mtime: 0, items: [] }
   }
   // 颜色不进缓存：agent color 可能晚于首次渲染才到位，缓存命中也要重算
   return rosterCache.items.map((item) => ({ ...item, color: colorOf(item.name) }))
@@ -225,7 +268,11 @@ export default Plugin.define({
         schedule()
       }),
       context.data.on("session.created", schedule),
-      context.data.on("session.deleted", schedule),
+      context.data.on("session.deleted", (event) => {
+        const id = event.data?.sessionID
+        if (id) live.delete(id)
+        schedule()
+      }),
       context.data.on("session.renamed", schedule),
       context.data.on("session.moved", schedule),
     ]
@@ -309,7 +356,7 @@ export default Plugin.define({
               : STATE_COLOR[state] ?? (state === "idle" ? theme.text.muted : (agent?.color ?? theme.text.base)),
           agent: `   ${pad(agentName, NAME)}`,
           agentColor: agent?.color ?? theme.text.base,
-          model: fit(tail(modelRaw), MAXW - NAME - 5),
+          model: fit(pretty(modelRaw), MAXW - NAME - 5),
           tokens: fit(
             `${unit(input)} (${unit(cache)}) in ${unit(output)} out${data.detail ? `  ${data.detail}` : ""}`,
             MAXW - 11,
