@@ -8,7 +8,7 @@
 
 ## Features
 
-- Subagent model routing: `~/.config/opencode/subagents.json` is the single source of truth for each subagent's name, model and description plus overall concurrency limits; the plugin reconciles the routes into the agents section of opencode.json at startup and on `/reload`, never writing while files are being edited, with `npm run sync` for a manual force and `npm run clean` to remove the generated block
+- Subagent model routing: `~/.config/opencode/subagents.json` is the single source of truth for each subagent's name, model and description plus overall concurrency limits (prompt-level convention only, see Configuration); the plugin reconciles the routes into the agents section of opencode.json at startup and on `/reload`, never writing while files are being edited, with `npm run sync` for a manual force and `npm run clean` to remove the generated block
 - Plan to build: after the plan is written, `plan_build` switches the session to the build agent and injects plan-execution instructions; choosing "switch to build" hands over automatically
 - TUI status board: live view of every subagent's model, state and token usage
 - Ships with 7 subagent definitions and 1 command: plan, explore, librarian, oracle, writer, critic and looker, plus ulw
@@ -61,8 +61,8 @@ Minimal subagents.json example:
 | model | Base model reference as `provider/model`, no # suffix |
 | effort | Optional reasoning effort, `low` / `medium` / `high` / `max`, only values the model declares support for |
 | description | Role note for the subagent; the live source is the same field in `.opencode/agents/<name>.md`, kept here for reference |
-| concurrency.total | Upper bound on subagents running at the same time |
-| concurrency.perAgent | Upper bound on instances of one subagent type |
+| concurrency.total | Prompt-level convention only, not enforced by the plugin. The ulw workflow self-limits to this number |
+| concurrency.perAgent | Same as above; ulw batches dispatches to stay within this number |
 
 > ⚠️ For model, copy base names verbatim from `opencode models`; a nonexistent model or an effort value outside what the model supports makes the subagent fail to start with 模型不存在或已停用
 

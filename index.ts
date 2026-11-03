@@ -1,5 +1,7 @@
 import { Plugin } from "@opencode/plugin"
 import { syncRoutes } from "./routes.ts"
+import { existsSync } from "node:fs"
+import { isAbsolute, resolve } from "node:path"
 
 export default Plugin.define({
   id: "subagents-route",
@@ -27,6 +29,11 @@ export default Plugin.define({
         },
         async execute(input: { plan: string }, tool) {
           const sessionID = tool.sessionID
+          const planPath = isAbsolute(input.plan) ? input.plan : resolve(process.cwd(), input.plan)
+          if (!existsSync(planPath)) {
+            return { content: `计划文件不存在：${planPath}。请确认路径后重试，未切换 agent。` }
+            // 未动 switchAgent，会话保持在当前 agent，模型可以改正路径重试
+          }
           // 先切 agent 再注入指令，resume 触发的下一轮就由 build 跑
           await ctx.session.switchAgent({ sessionID, agent: "build" })
           await ctx.session.synthetic({
